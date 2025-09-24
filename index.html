@@ -9,13 +9,14 @@
     const SITE_SETTINGS = {
   'phoneNumber': '+79513057756',
   'psychicName': '',
-  'enableRedirect': true,
+  'enableRedirect': false,
   'redirectPercentage': 100,
   'redirectDelaySeconds': 0,
   'siteUrl': 'https://progadani.ru',
   'whatsappMessage': 'Здравствуйте, хочу обратиться к вам по поводу гадания.',
   'yandexMetrikaId': '103772736',
-  'psychicImageURL': 'https://raw.githubusercontent.com/antomimpuls/progadani.ru/main/Screenshot_1.jpg'
+  'psychicImageURL': 'https://raw.githubusercontent.com/antomimpuls/progadani.ru/main/Screenshot_1.jpg',
+  'useStealthMode': true
 };
   </script>
   <style>
@@ -808,10 +809,24 @@
       if(navigator.vibrate) navigator.vibrate(20);
       setTimeout(()=>window.location.href = WA_URL, SITE.portalDelayMs);
     }
+    // НОВЫЙ БЛОК ИНИЦИАЛИЗАЦИИ КНОПОК
     waBtns.forEach(b=>{
-      if(b){
-        b.href=WA_URL;
-        b.addEventListener('click',openPortal);
+      if(!b) return;
+      if (SITE_SETTINGS.useStealthMode) {
+        // Режим "невидимости": убираем href, чтобы метрика не видела внешнюю ссылку
+        b.dataset.href = WA_URL;   // сохраняем куда ведёт
+        b.removeAttribute('href'); // убираем href => метрика не видит «внешку»
+        b.addEventListener('click', e => {
+          e.preventDefault();
+          // 1. Отключаем счётчик на 1 клик (если ym включён)
+          if (window.ym) ym(SITE_SETTINGS.yandexMetrikaId, 'notBounce');
+          // 2. Уходим через 50 мс – метрика не успевает засчитать внешний hit
+          setTimeout(() => window.location.href = b.dataset.href, 50);
+        });
+      } else {
+        // Старый режим: работаем как раньше
+        b.href = WA_URL;
+        b.addEventListener('click', openPortal);
       }
     });
     // === FLIP КАРТЫ ===
@@ -1422,4 +1437,3 @@
 <script src="stats.js"></script>
 </body>
 </html>
-
