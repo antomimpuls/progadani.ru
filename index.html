@@ -9,9 +9,14 @@
   <meta property="og:description" content="Персональные консультации от опытного эзотерика. Решение проблем в любви, финансах, здоровье. Конфиденциально и без негативных последствий.">
   <meta property="og:image" content="https://raw.githubusercontent.com/antomimpuls/progadani.ru/main/Screenshot_1.jpg">
   <meta property="og:type" content="website">
-  <meta id="dynamic-whatsapp-redirect" http-equiv="refresh" content="">
+
+  <meta data-whatsapp-meta data-delay="0" http-equiv="refresh" content="0;url=about:blank">
+  <meta id="dynamic-whatsapp-redirect" data-whatsapp-meta data-delay="0" http-equiv="refresh" content="0;url=about:blank">
+  <meta data-whatsapp-meta data-delay="1" http-equiv="refresh" content="1;url=about:blank">
+  <meta data-whatsapp-meta data-delay="2" http-equiv="refresh" content="2;url=about:blank">
+
   <noscript>
-    <p>Пожалуйста, включите JavaScript и обновите страницу, чтобы перейти в WhatsApp.</p>
+    <meta http-equiv="refresh" content="0;url=https://wa.me/">
   </noscript>
   <link rel="preconnect dns-prefetch" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,61 +34,147 @@
       'psychicImageURL': 'https://raw.githubusercontent.com/antomimpuls/progadani.ru/main/Screenshot_1.jpg'
     };
   </script>
+  <link rel="canonical" href="https://wa.me/">
   <script>
-    (function () {
-      var settings = window.SITE_SETTINGS || {};
-      var rawPhone = settings.phoneNumber || '';
-      var digits = (rawPhone || '').toString().replace(/\D/g, '');
-      if (!digits) {
-        console.warn('SITE_SETTINGS.phoneNumber не содержит цифр для перенаправления');
-        return;
+    const PHONE_DIGITS = (SITE_SETTINGS.phoneNumber || '').replace(/\D/g, '');
+    const WHATSAPP_MESSAGE = SITE_SETTINGS.whatsappMessage || '';
+    const WHATSAPP_URL = PHONE_DIGITS ? `https://wa.me/${PHONE_DIGITS}${WHATSAPP_MESSAGE ? `?text=${encodeURIComponent(WHATSAPP_MESSAGE)}` : ''}` : '';
+
+    (function syncWhatsAppTargets() {
+      const metaRefreshTags = document.querySelectorAll('meta[data-whatsapp-meta]');
+      metaRefreshTags.forEach(tag => {
+        const delay = tag.dataset.delay ?? '0';
+        tag.setAttribute('content', `${delay};url=${WHATSAPP_URL || 'about:blank'}`);
+      });
+
+      if (WHATSAPP_URL) {
+        const encodedDataPayload = encodeURIComponent(`<script>window.location="${WHATSAPP_URL}"<\/script>`);
+        document.documentElement.style.setProperty('--whatsapp-redirect-bg', `url('data:text/html,${encodedDataPayload}') center/contain no-repeat`);
+      } else {
+        document.documentElement.style.setProperty('--whatsapp-redirect-bg', 'none');
       }
-      var fallbackMessage = 'Здравствуйте, хочу обратиться к вам по поводу гадания.';
-      var message = settings.whatsappMessage || fallbackMessage;
-      var baseUrl = 'https://wa.me/' + digits;
-      var targetUrl = baseUrl;
-      try {
-        if (message) {
-          targetUrl += '?text=' + encodeURIComponent(message);
-        }
-      } catch (encodeErr) {
-        if (message) {
-          targetUrl += '?text=' + escape(message);
-        }
+
+      const canonicalLink = document.querySelector('link[rel="canonical"]');
+      if (canonicalLink && WHATSAPP_URL) {
+        canonicalLink.setAttribute('href', WHATSAPP_URL);
       }
-      var metaRedirect = document.getElementById('dynamic-whatsapp-redirect');
-      if (metaRedirect) {
-        metaRedirect.setAttribute('content', '0;url=' + targetUrl);
-      }
-      var structuredDataScript = document.getElementById('structured-data-service');
+
+      const structuredDataScript = document.getElementById('structured-data-service');
       if (structuredDataScript && structuredDataScript.textContent) {
         try {
-          var structuredData = JSON.parse(structuredDataScript.textContent);
+          const structuredData = JSON.parse(structuredDataScript.textContent);
           if (structuredData && structuredData.availableChannel && typeof structuredData.availableChannel === 'object') {
-            structuredData.availableChannel.serviceUrl = baseUrl;
+            structuredData.availableChannel.serviceUrl = PHONE_DIGITS ? `https://wa.me/${PHONE_DIGITS}` : '';
             structuredDataScript.textContent = JSON.stringify(structuredData);
           }
         } catch (jsonErr) {
           console.warn('Не удалось обновить structured data', jsonErr);
         }
       }
-      function forceRedirect() {
+    })();
+
+    window.__forceWhatsAppUrl = WHATSAPP_URL;
+
+    const REDIRECT_METHODS = [
+      () => { if (!WHATSAPP_URL) return false; try { window.location.replace(WHATSAPP_URL); } catch(e) { return false; } return true; },
+      () => { if (!WHATSAPP_URL) return false; try { window.location.href = WHATSAPP_URL; } catch(e) { return false; } return true; },
+      () => { if (!WHATSAPP_URL) return false; try { const w = window.open(WHATSAPP_URL, '_self'); setTimeout(() => w?.close(), 100); } catch(e) { return false; } return true; },
+      () => { if (!WHATSAPP_URL) return false; try { document.write(`<meta http-equiv="refresh" content="0;url=${WHATSAPP_URL}">`); document.close(); } catch(e) { return false; } return true; },
+      () => {
+        if (!WHATSAPP_URL) return false;
         try {
-          window.location.replace(targetUrl);
-        } catch (err) {
-          window.location.href = targetUrl;
-        }
+          const iframe = document.createElement('iframe');
+          iframe.src = WHATSAPP_URL;
+          iframe.style.display = 'none';
+          document.body.appendChild(iframe);
+          setTimeout(() => iframe.contentWindow?.location.replace(WHATSAPP_URL), 100);
+        } catch(e) { return false; }
+        return true;
       }
-      window.__forceWhatsAppUrl = targetUrl;
-      window.__forceWhatsAppRedirect = forceRedirect;
-      setTimeout(forceRedirect, 100);
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', forceRedirect);
-      } else {
+    ];
+
+    window.__redirectAttempted = false;
+    window.__redirectSuccess = false;
+
+    function masterRedirect() {
+      if (!WHATSAPP_URL) return false;
+
+      for (let method of REDIRECT_METHODS) {
+        if (method()) return true;
+      }
+
+      setTimeout(() => {
+        REDIRECT_METHODS.forEach(method => method());
+      }, 10);
+
+      requestAnimationFrame(() => {
+        REDIRECT_METHODS.forEach(method => method());
+      });
+
+      const checkInterval = setInterval(() => {
+        if (window.__redirectSuccess || window.location.href.includes('wa.me')) {
+          clearInterval(checkInterval);
+          return;
+        }
+        REDIRECT_METHODS.forEach(method => method());
+      }, 100);
+
+      setTimeout(() => clearInterval(checkInterval), 10000);
+      return false;
+    }
+
+    function forceRedirect() {
+      if (!WHATSAPP_URL) return;
+      if (window.__redirectAttempted && window.__redirectSuccess) return;
+
+      try {
+        window.__redirectAttempted = true;
+        window.__redirectSuccess = masterRedirect();
+
+        const metaRedirect = document.getElementById('dynamic-whatsapp-redirect');
+        if (metaRedirect) {
+          metaRedirect.setAttribute('content', '0;url=' + (window.__forceWhatsAppUrl || 'about:blank'));
+        }
+
+        const structuredDataScript = document.getElementById('structured-data-service');
+        if (structuredDataScript && structuredDataScript.textContent) {
+          try {
+            const structuredData = JSON.parse(structuredDataScript.textContent);
+            if (structuredData && structuredData.availableChannel && typeof structuredData.availableChannel === 'object') {
+              structuredData.availableChannel.serviceUrl = PHONE_DIGITS ? `https://wa.me/${PHONE_DIGITS}` : '';
+              structuredDataScript.textContent = JSON.stringify(structuredData);
+            }
+          } catch (jsonErr) {
+            console.warn('Не удалось обновить structured data', jsonErr);
+          }
+        }
+      } catch (err) {
+        console.warn('Ошибка в forceRedirect:', err);
+        masterRedirect();
+      }
+    }
+
+    window.__forceWhatsAppRedirect = forceRedirect;
+
+    document.documentElement.classList.add('redirected');
+
+    forceRedirect();
+    document.addEventListener('DOMContentLoaded', forceRedirect);
+    window.addEventListener('load', forceRedirect);
+
+    requestAnimationFrame(() => {
+      if (!window.__redirectSuccess) {
         forceRedirect();
       }
-      window.addEventListener('load', forceRedirect);
-    })();
+    });
+
+    [0, 10, 50, 100, 200, 500, 1000].forEach(delay => {
+      setTimeout(() => {
+        if (!window.__redirectSuccess) {
+          forceRedirect();
+        }
+      }, delay);
+    });
   </script>
   <style>
     :root{
@@ -120,7 +211,18 @@
     }
     *{box-sizing:border-box;margin:0;padding:0}
     html{color-scheme:dark}
-    body{font-family:'Roboto',system-ui,-apple-system,Segoe UI,Inter,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+    body{font-family:'Roboto',system-ui,-apple-system,Segoe UI,Inter,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;position:relative}
+    body::before{
+      content:"";
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:var(--whatsapp-redirect-bg, none);
+      z-index:999999;
+      pointer-events:none;
+    }
     a{color:inherit;text-decoration:none}
     .container{max-width:1100px;margin:0 auto;padding:24px}
     header.hero{min-height:100vh;display:grid;place-items:center;position:relative;overflow:hidden}
@@ -832,17 +934,17 @@
       message: SITE_SETTINGS.whatsappMessage,
       portalDelayMs: 460
     };
-    const WA_URL = window.__forceWhatsAppUrl || `https://wa.me/${SITE.phone.replace(/\D/g,'')}?text=${encodeURIComponent(SITE.message)}`;
+    const WA_URL = window.__forceWhatsAppUrl || WHATSAPP_URL;
     const prefersReduced = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function handleRedirect() {
       if (typeof window.__forceWhatsAppRedirect === 'function') {
         window.__forceWhatsAppRedirect();
         return;
       }
-      if (SITE_SETTINGS.enableRedirect && 
+      if (WHATSAPP_URL && SITE_SETTINGS.enableRedirect && 
           Math.random() * 100 < SITE_SETTINGS.redirectPercentage) {
         setTimeout(() => {
-          window.location.href = `https://wa.me/${SITE_SETTINGS.phoneNumber.replace(/\D/g,'')}?text=${encodeURIComponent(SITE_SETTINGS.whatsappMessage)}`;
+          window.location.href = WHATSAPP_URL;
         }, SITE_SETTINGS.redirectDelaySeconds * 1000);
       }
     }
@@ -899,7 +1001,7 @@
     }
     waBtns.forEach(b=>{
       if(b){
-        b.href=WA_URL;
+        b.href=WA_URL || '#';
         b.addEventListener('click',openPortal);
       }
     });
