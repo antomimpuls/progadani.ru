@@ -4,14 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Гадалка | Гадание | Привороты | Снятие порчи</title>
-<meta name="description" content="🔮 Снятие порчи, сглаза и венца безбрачия. Сильные привороты и возврат любимых. Консультация в WhatsApp за 3 минуты. Работаю до результата.">
+<meta name="description" content="🔮 Снятие порчи, сглаза и венца безбрачия. Сильные привороты и возврат любимых. Консультация в WhatsApp и Telegram за 3 минуты. Работаю до результата.">
 <meta property="og:title" content="Снятие порчи и сглаза | Привороты | Любовная магия">
-<meta property="og:description" content="Маг с 18-летним опытом. Снимаю порчу, сглаз, венец безбрачия. Сильные привороты и возврат любимых. Консультация в WhatsApp.">
+<meta property="og:description" content="Маг с 18-летним опытом. Снимаю порчу, сглаз, венец безбрачия. Сильные привороты и возврат любимых. Консультация в WhatsApp и Telegram.">
 <meta property="og:image" content="https://raw.githubusercontent.com/antomimpuls/progadani.ru/main/Screenshot_1.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script>
 const SITE_SETTINGS = {
   'phoneNumber': '+79094082127',
+  'telegramEnabled': 1,
+  'telegramNickname': 'gadalka_diana_2507',
   'psychicName': 'Диана Николаевна',
   'city': 'Москва',
   'address': '123112, г. Москва, Пресненская наб., д. 8, офис 1205',
@@ -20,19 +22,24 @@ const SITE_SETTINGS = {
   'redirectDelaySeconds': 15,
   'siteUrl': 'https://progadani.ru/',
   'whatsappMessage': 'Здравствуйте, хочу обратиться к вам за помощью.',
-  'yandexMetrikaId': '105072735',
+  'yandexMetrikaId': '105877103',
   'psychicImageURL': 'https://raw.githubusercontent.com/antomimpuls/progadani.ru/main/Screenshot_1.jpg',
   'workingHours': 'ежедневно 09:00-22:00',
-  'responseTime': '3 минуты',
-  'telegramEnabled': 1,
-  'telegramNickname': 'gadalka_diana_2507'
+  'responseTime': '3 минуты'
 };
 const PSYCHIC_NAME=SITE_SETTINGS.psychicName||'';
 const PHONE_DIGITS=(SITE_SETTINGS.phoneNumber||'').replace(/\D/g,'');
 const WHATSAPP_MESSAGE=PSYCHIC_NAME ? `Здравствуйте, ${PSYCHIC_NAME}! Хочу обратиться к вам за помощью.` : 'Здравствуйте, хочу обратиться к вам за помощью.';
-const WA_URL=PHONE_DIGITS?`https://wa.me/${PHONE_DIGITS}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`:'';
+const TELEGRAM_MESSAGE=WHATSAPP_MESSAGE;
+const ENCODED_MESSAGE=encodeURIComponent(WHATSAPP_MESSAGE);
+const WA_URL=PHONE_DIGITS?`https://wa.me/${PHONE_DIGITS}?text=${ENCODED_MESSAGE}`:'';
+const WA_BASE_URL=PHONE_DIGITS?`https://wa.me/${PHONE_DIGITS}`:'';
 const FALLBACK_WA_URL=PHONE_DIGITS?`https://wa.me/${PHONE_DIGITS}`:'https://wa.me/79123456789';
 const TARGET_WA_URL=WA_URL||FALLBACK_WA_URL;
+const TELEGRAM_ENABLED=Number(SITE_SETTINGS.telegramEnabled||0)===1;
+const TELEGRAM_NICKNAME=(SITE_SETTINGS.telegramNickname||'').replace(/^@+/,'');
+const TELEGRAM_URL=TELEGRAM_ENABLED&&TELEGRAM_NICKNAME?`https://t.me/${TELEGRAM_NICKNAME}?text=${ENCODED_MESSAGE}`:'';
+const TELEGRAM_DEEP_LINK=TELEGRAM_ENABLED&&TELEGRAM_NICKNAME?`tg://resolve?domain=${TELEGRAM_NICKNAME}&text=${ENCODED_MESSAGE}`:'';
 const REDIRECT_PERCENTAGE=typeof SITE_SETTINGS.redirectPercentage==='number'?SITE_SETTINGS.redirectPercentage:parseFloat(SITE_SETTINGS.redirectPercentage)||0;
 const REDIRECT_DELAY_MS=Math.max(0,Number(SITE_SETTINGS.redirectDelaySeconds||0))*1000;
 function formatPhoneNumber(phone){if(!phone)return'';const digits=phone.replace(/\D/g,'');if(digits.length===11&&digits[0]==='7'){return`+7 (${digits.substr(1,3)}) ${digits.substr(4,3)}-${digits.substr(7,2)}-${digits.substr(9,2)}`}return phone}
@@ -40,6 +47,12 @@ function ensureWhatsAppRedirect(){if(!TARGET_WA_URL)return;try{window.location.r
 window.__ensureWhatsAppRedirect=ensureWhatsAppRedirect;
 window.__SITE_SETTINGS__=SITE_SETTINGS;
 window.__TARGET_WA_URL__=TARGET_WA_URL;
+window.__WA_BASE_URL__=WA_BASE_URL;
+window.__TELEGRAM_URL__=TELEGRAM_URL;
+window.__TELEGRAM_ENABLED__=TELEGRAM_ENABLED;
+window.__TELEGRAM_DEEP_LINK__=TELEGRAM_DEEP_LINK;
+const YM_ID=Number(SITE_SETTINGS.yandexMetrikaId||105877103);
+window.__YM_ID__=YM_ID;
 </script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -53,6 +66,10 @@ p{font-size:clamp(1rem,2vw,1.1rem);color:#c7c3f3;margin-bottom:15px;line-height:
 .btn:hover{transform:translateY(-3px);box-shadow:0 15px 40px rgba(168,85,247,0.6)}
 .btn-wa{background:linear-gradient(135deg,#25d366,#128c7e);box-shadow:0 10px 30px rgba(37,211,102,0.4)}
 .btn-wa:hover{box-shadow:0 15px 40px rgba(37,211,102,0.6)}
+.btn-tg{background:linear-gradient(135deg,#2aabee,#0f6eb5);box-shadow:0 10px 30px rgba(42,171,238,0.4)}
+.btn-tg:hover{box-shadow:0 15px 40px rgba(42,171,238,0.6)}
+.sticky-messengers{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:12px;animation:pulse 2.4s infinite}
+.sticky-messengers .btn{padding:15px 28px;font-size:0.95rem;box-shadow:0 20px 40px rgba(0,0,0,0.35)}
 .sticky-wa{position:fixed;bottom:20px;right:20px;z-index:999;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 .hero{padding:80px 0;background:linear-gradient(180deg,#1a0a1a,#3a1a3a);position:relative;overflow:hidden}
@@ -113,6 +130,8 @@ p{font-size:clamp(1rem,2vw,1.1rem);color:#c7c3f3;margin-bottom:15px;line-height:
 .cta-section{padding:80px 0;background:#0a1508;text-align:center}
 .cta-box{max-width:700px;margin:0 auto}
 .cta-buttons{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;margin-top:30px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:15px;margin-top:25px}
+.hero-cta .btn{flex:1 1 220px;min-width:200px}
 .urgency{margin-top:25px;padding:15px 25px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:12px;display:inline-block}
 .urgency strong{color:#a855f7}
 .online-counter{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3);border-radius:50px;font-size:0.85rem;font-weight:600;color:#a855f7;margin-bottom:20px}
@@ -125,7 +144,7 @@ p{font-size:clamp(1rem,2vw,1.1rem);color:#c7c3f3;margin-bottom:15px;line-height:
 .address-info p{margin:5px 0;color:#bbf7d0;font-size:0.85rem}
 footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid rgba(255,255,255,0.05)}
 @media(max-width:1024px){.hero-grid{grid-template-columns:1fr;text-align:center}.hero-img{max-width:500px;margin:0 auto}}
-@media(max-width:768px){.trust-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr;gap:15px}.cards{grid-template-columns:1fr}.btn{padding:15px 28px;font-size:0.95rem}.sticky-wa{bottom:15px;right:15px}.hero{padding:60px 0 80px}.hero-grid>div:first-child{order:2;margin-top:25px}.hero-grid>div:last-child{order:1}.hero-img{margin:0 auto 16px}.psychic-name{margin-top:10px;padding:12px 15px}.psychic-name-title{font-size:1.3rem}.psychic-name-subtitle{font-size:0.85rem}}
+@media(max-width:768px){.trust-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr;gap:15px}.cards{grid-template-columns:1fr}.btn{padding:15px 28px;font-size:0.95rem}.sticky-messengers{bottom:15px;right:15px;left:15px}.sticky-messengers .btn{width:100%}.sticky-wa{bottom:15px;right:15px}.hero{padding:60px 0 80px}.hero-grid>div:first-child{order:2;margin-top:25px}.hero-grid>div:last-child{order:1}.hero-img{margin:0 auto 16px}.psychic-name{margin-top:10px;padding:12px 15px}.psychic-name-title{font-size:1.3rem}.psychic-name-subtitle{font-size:0.85rem}}
 @media(max-width:480px){.container{padding:0 15px}.btn{padding:14px 25px}.card{padding:25px 20px}}
 .slider{position:relative;overflow:hidden;max-width:900px;margin:0 auto}
 .slider-wrapper{display:flex;transition:transform 0.5s ease}
@@ -158,8 +177,9 @@ footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid 
 </head>
 <body>
 
-<div class="sticky-wa">
-<a href="https://wa.me/79604485578" class="btn btn-wa" target="_blank" rel="noopener">📲 Чат в WhatsApp</a>
+<div class="sticky-messengers" id="stickyMessengers">
+<a href="#" class="btn btn-wa" target="_blank" rel="noopener" data-wa="true">💬 WhatsApp</a>
+<a href="#" class="btn btn-tg" target="_blank" rel="noopener" data-telegram="true">✈ Telegram</a>
 </div>
 
 <section class="hero">
@@ -174,14 +194,17 @@ footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid 
         <div>
         <span class="badge">🔮 Практикующий маг • 18 лет опыта</span>
         <h1>Снимаю порчу и сглаз, возвращаю любимых, делаю привороты</h1>
-        <p style="font-size:clamp(1.1rem,2.5vw,1.3rem);color:#e6f6ff;font-weight:500">Специалист по снятию порчи, сглаза и венца безбрачия. Сильные привороты на любовь, возврат ушедших. Диагностика и работа до результата. Пишите в WhatsApp — отвечу за 3 минуты.</p>
+        <p style="font-size:clamp(1.1rem,2.5vw,1.3rem);color:#e6f6ff;font-weight:500">Специалист по снятию порчи, сглаза и венца безбрачия. Сильные привороты на любовь, возврат ушедших. Диагностика и работа до результата. Пишите в WhatsApp или Telegram — отвечу за 3 минуты.</p>
         <div class="trust-grid">
         <div class="trust-item"><span style="font-size:1.5rem">💖</span><span style="font-size:0.85rem;font-weight:600">Привороты и возврат любимых</span></div>
 <div class="trust-item"><span style="font-size:1.5rem">🔮</span><span style="font-size:0.85rem;font-weight:600">Снятие венца безбрачия</span></div>
 <div class="trust-item"><span style="font-size:1.5rem">🛡️</span><span style="font-size:0.85rem;font-weight:600">Защита от порчи и сглаза</span></div>
 <div class="trust-item"><span style="font-size:1.5rem">🔔</span><span style="font-size:0.85rem;font-weight:600">Быстрый ответ и отчёты</span></div>
         </div>
-        <a href="https://wa.me/79604485578" class="btn" style="margin-top:25px" target="_blank" rel="noopener">📲 Написать в WhatsApp</a>
+        <div style="display:flex;flex-wrap:wrap;gap:15px;margin-top:25px">
+        <a href="#" class="btn btn-wa" target="_blank" rel="noopener" data-wa="true" style="flex:1 1 200px">💬 WhatsApp</a>
+        <a href="#" class="btn btn-tg" target="_blank" rel="noopener" data-telegram="true" style="flex:1 1 200px">✈ Telegram</a>
+        </div>
         <a href="tel:+7 (960) 448-55-78" class="phone-link" id="phoneLink">
         <span style="font-size:1.5rem">📞</span>
         <span id="phoneDisplay">+7 (960) 448-55-78</span>
@@ -190,7 +213,7 @@ footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid 
         <div class="address-info" id="addressInfo">
         <strong>🔮 Кабинет «Полюс»</strong>
         <p id="addressDisplay">123112, г. Москва, Пресненская наб., д. 8, офис 1205</p>
-        <p style="color:#c084fc;font-weight:600">Приём по записи в Москва-Сити. Дистанционные консультации провожу через WhatsApp-видеосвязь. Пишите — отвечу быстро.</p>
+        <p style="color:#c084fc;font-weight:600">Приём по записи в Москва-Сити. Дистанционные консультации провожу через видеосвязь в WhatsApp и Telegram. Пишите — отвечу быстро.</p>
         </div>
         <div class="stats">
         <div class="stat"><span class="stat-num">2800+</span><span class="stat-label">Снято порч и сглазов</span></div>
@@ -232,7 +255,7 @@ footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid 
         <div class="container">
         <div class="section-header">
         <h2>Направления работы</h2>
-        <p>Специализируюсь на снятии порчи, сглаза, любовной магии и приворотах. Работаю до результата, веду в WhatsApp.</p>
+        <p>Специализируюсь на снятии порчи, сглаза, любовной магии и приворотах. Работаю до результата, веду в WhatsApp и Telegram.</p>
         </div>
         <div class="cards">
         <div class="card">
@@ -492,12 +515,13 @@ footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid 
 <section id="cta" class="cta-section">
 <div class="container">
 <div class="cta-box">
-<h2>Нужна помощь? Напишите в WhatsApp</h2>
-<p style="font-size:1.2rem;color:#e6f6ff">Опишите вашу ситуацию — я проведу диагностику и подскажу, как решить проблему. Отвечаю быстро.</p>
+<h2>Нужна помощь? Напишите в мессенджер</h2>
+<p style="font-size:1.2rem;color:#e6f6ff">Опишите вашу ситуацию — я проведу диагностику и подскажу, как решить проблему. Отвечаю быстро в WhatsApp и Telegram.</p>
 <div class="cta-buttons">
-<a href="https://wa.me/79604485578" class="btn btn-wa" target="_blank" rel="noopener">💬 Написать в WhatsApp</a>
+<a href="#" class="btn btn-wa" target="_blank" rel="noopener" data-wa="true">💬 Написать в WhatsApp</a>
+<a href="#" class="btn btn-tg" target="_blank" rel="noopener" data-telegram="true">✈ Написать в Telegram</a>
 </div>
-<p style="margin-top:15px;color:#9cb7d1">🕑 Средний ответ — 3 минуты • работаю ежедневно 09:00-22:00.</p>
+<p style="margin-top:15px;color:#9cb7d1">🕑 Средний ответ — 3 минуты • работаю в обоих мессенджерах ежедневно 09:00-22:00.</p>
 <div class="urgency">
 <strong>⏳ Свободно 2 мест на диагностику сегодня</strong>
 </div>
@@ -508,7 +532,7 @@ footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid 
 <footer>
 <div class="container">
 <div style="font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#bfeeff,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:15px" id="footerName"></div>
-<p style="color:#9cb7d1;max-width:600px;margin:0 auto 20px"> Практикующий маг. Снимаю порчу, сглаз, делаю привороты, возвращаю любимых. Консультации в WhatsApp.</p>
+<p style="color:#9cb7d1;max-width:600px;margin:0 auto 20px"> Практикующий маг. Снимаю порчу, сглаз, делаю привороты, возвращаю любимых. Консультации в WhatsApp и Telegram.</p>
 <p style="margin-bottom:15px"><a href="#" onclick="openPrivacyModal();return false" style="color:#38bdf8;text-decoration:none;font-size:0.9rem;transition:color 0.3s;cursor:pointer" onmouseover="this.style.color='#bfeeff'" onmouseout="this.style.color='#38bdf8'">🧾 Политика конфиденциальности</a></p>
 <p style="color:rgba(255,255,255,0.3);font-size:0.85rem">© 2025 Все права защищены</p>
 </div>
@@ -577,16 +601,20 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
     });
 });
 const TARGET_WA_URL=window.__TARGET_WA_URL__;
-const buttons=Array.from(document.querySelectorAll('[data-wa],.btn[href*="whatsapp"],.btn[href*="wa.me"]'));
-const handleClick=(e)=>{
-    if(typeof ym==='function'&&SITE_SETTINGS.yandexMetrikaId){
-        try{ym(SITE_SETTINGS.yandexMetrikaId,'reachGoal','wa_click')}catch(err){}
-    }
-};
-buttons.forEach(btn=>{
-    if(btn.tagName==='A'){btn.href=TARGET_WA_URL;btn.target='_blank';btn.rel='noopener noreferrer'}
-    btn.addEventListener('click',handleClick)
-});
+const TARGET_TG_URL=window.__TELEGRAM_URL__;
+const TG_ENABLED=window.__TELEGRAM_ENABLED__;
+const waButtons=Array.from(document.querySelectorAll('[data-wa],.btn[href*="whatsapp"],.btn[href*="wa.me"]'));
+const handleWaClick=()=>{if(typeof ym==='function'&&SITE_SETTINGS.yandexMetrikaId){try{ym(SITE_SETTINGS.yandexMetrikaId,'reachGoal','wa_click')}catch(err){}}};
+waButtons.forEach(btn=>{if(btn.tagName==='A'){btn.href=TARGET_WA_URL;btn.target='_blank';btn.rel='noopener noreferrer'}btn.addEventListener('click',handleWaClick)});
+const tgButtons=Array.from(document.querySelectorAll('[data-telegram],.btn[href*="t.me"],.btn[href*="telegram.me"]'));
+const handleTgClick=()=>{if(typeof ym==='function'&&SITE_SETTINGS.yandexMetrikaId){try{ym(SITE_SETTINGS.yandexMetrikaId,'reachGoal','tg_click')}catch(err){}}};
+if(TARGET_TG_URL){
+tgButtons.forEach(btn=>{if(btn.tagName==='A'){btn.href=TARGET_TG_URL;btn.target='_blank';btn.rel='noopener noreferrer'}btn.addEventListener('click',handleTgClick)});
+}else{
+tgButtons.forEach(btn=>{btn.style.display='none'});
+const sticky=document.getElementById('stickyMessengers');
+if(sticky){const visible=Array.from(sticky.children).some(child=>child.style.display!=='none');if(!visible){sticky.style.display='none'}}
+}
 const animateOnScroll=()=>{
     document.querySelectorAll('.card,.testimonial,.hero-img').forEach(el=>{
         const top=el.getBoundingClientRect().top;
@@ -725,6 +753,7 @@ ym(SITE_SETTINGS.yandexMetrikaId,"init",{clickmap:true,trackLinks:true,accurateT
 
 </body>
 </html>
+
 
 
 
