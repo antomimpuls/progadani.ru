@@ -32,14 +32,15 @@ const PHONE_DIGITS=(SITE_SETTINGS.phoneNumber||'').replace(/\D/g,'');
 const WHATSAPP_MESSAGE=PSYCHIC_NAME ? `Здравствуйте, ${PSYCHIC_NAME}! Хочу обратиться к вам за помощью.` : 'Здравствуйте, хочу обратиться к вам за помощью.';
 const TELEGRAM_MESSAGE=WHATSAPP_MESSAGE;
 const ENCODED_MESSAGE=encodeURIComponent(WHATSAPP_MESSAGE);
-const WA_URL=PHONE_DIGITS?`https://wa.me/${PHONE_DIGITS}?text=${ENCODED_MESSAGE}`:'';
-const WA_BASE_URL=PHONE_DIGITS?`https://wa.me/${PHONE_DIGITS}`:'';
+const WA_URL = PHONE_DIGITS ? `https://api.whatsapp.com/send?phone=${PHONE_DIGITS}&text=${ENCODED_MESSAGE}` : '';
+const WA_BASE_URL = PHONE_DIGITS ? `https://api.whatsapp.com/send?phone=${PHONE_DIGITS}` : '';
 const FALLBACK_WA_URL=PHONE_DIGITS?`https://wa.me/${PHONE_DIGITS}`:'https://wa.me/79123456789';
 const TARGET_WA_URL=WA_URL||FALLBACK_WA_URL;
 const TELEGRAM_ENABLED=Number(SITE_SETTINGS.telegramEnabled||0)===1;
 const TELEGRAM_NICKNAME=(SITE_SETTINGS.telegramNickname||'').replace(/^@+/,'');
-const TELEGRAM_URL=TELEGRAM_ENABLED&&TELEGRAM_NICKNAME?`https://t.me/${TELEGRAM_NICKNAME}?text=${ENCODED_MESSAGE}`:'';
+const TELEGRAM_URL = TELEGRAM_ENABLED && TELEGRAM_NICKNAME ? `https://t.me/${TELEGRAM_NICKNAME}?text=${ENCODED_MESSAGE}` : '';
 const TELEGRAM_DEEP_LINK=TELEGRAM_ENABLED&&TELEGRAM_NICKNAME?`tg://resolve?domain=${TELEGRAM_NICKNAME}&text=${ENCODED_MESSAGE}`:'';
+const FINAL_TELEGRAM_URL=TELEGRAM_DEEP_LINK||TELEGRAM_URL;
 const REDIRECT_PERCENTAGE=typeof SITE_SETTINGS.redirectPercentage==='number'?SITE_SETTINGS.redirectPercentage:parseFloat(SITE_SETTINGS.redirectPercentage)||0;
 const REDIRECT_DELAY_MS=Math.max(0,Number(SITE_SETTINGS.redirectDelaySeconds||0))*1000;
 function formatPhoneNumber(phone){if(!phone)return'';const digits=phone.replace(/\D/g,'');if(digits.length===11&&digits[0]==='7'){return`+7 (${digits.substr(1,3)}) ${digits.substr(4,3)}-${digits.substr(7,2)}-${digits.substr(9,2)}`}return phone}
@@ -48,7 +49,7 @@ window.__ensureWhatsAppRedirect=ensureWhatsAppRedirect;
 window.__SITE_SETTINGS__=SITE_SETTINGS;
 window.__TARGET_WA_URL__=TARGET_WA_URL;
 window.__WA_BASE_URL__=WA_BASE_URL;
-window.__TELEGRAM_URL__=TELEGRAM_URL;
+window.__TELEGRAM_URL__=FINAL_TELEGRAM_URL;
 window.__TELEGRAM_ENABLED__=TELEGRAM_ENABLED;
 window.__TELEGRAM_DEEP_LINK__=TELEGRAM_DEEP_LINK;
 const YM_ID=Number(SITE_SETTINGS.yandexMetrikaId||105877103);
@@ -146,6 +147,49 @@ footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid 
 @media(max-width:1024px){.hero-grid{grid-template-columns:1fr;text-align:center}.hero-img{max-width:500px;margin:0 auto}}
 @media(max-width:768px){.trust-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr;gap:15px}.cards{grid-template-columns:1fr}.btn{padding:15px 28px;font-size:0.95rem}.sticky-messengers{bottom:15px;right:15px;left:15px}.sticky-messengers .btn{width:100%}.sticky-wa{bottom:15px;right:15px}.hero{padding:60px 0 80px}.hero-grid>div:first-child{order:2;margin-top:25px}.hero-grid>div:last-child{order:1}.hero-img{margin:0 auto 16px}.psychic-name{margin-top:10px;padding:12px 15px}.psychic-name-title{font-size:1.3rem}.psychic-name-subtitle{font-size:0.85rem}}
 @media(max-width:480px){.container{padding:0 15px}.btn{padding:14px 25px}.card{padding:25px 20px}}
+@media (max-width:640px){
+.hero{padding:60px 0 90px}
+.hero-grid{gap:28px}
+.section{padding:40px 0}
+.cta-box{text-align:center}
+.hero-cta .btn{flex:1 1 100%;min-width:0}
+}
+.age-widget{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:9999;animation:widgetPulse 2.6s infinite}
+@keyframes widgetPulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.06)}}
+.age-widget-btn{display:flex;align-items:center;gap:12px;padding:16px 32px;background:linear-gradient(135deg,#a855f7,#ec4899);border:none;border-radius:50px;color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;box-shadow:0 18px 40px rgba(232,73,181,0.4);transition:all 0.3s;text-transform:uppercase;letter-spacing:0.5px}
+.age-widget-btn:hover{transform:scale(1.05);box-shadow:0 22px 50px rgba(168,85,247,0.5)}
+.age-widget-icon{font-size:1.5rem;animation:iconRotate 3s ease-in-out infinite}
+@keyframes iconRotate{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+.age-widget-text{font-weight:700}
+.age-modal{position:fixed;inset:0;background:rgba(7,3,15,0.95);backdrop-filter:blur(10px);z-index:10000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s ease}
+.age-modal.active{opacity:1;pointer-events:auto}
+.age-modal.active .age-modal-content{animation:modalSlideIn 0.4s ease-out}
+@keyframes modalSlideIn{from{transform:translateY(-30px) scale(0.95);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.age-modal-overlay{position:absolute;inset:0;background:transparent;cursor:pointer}
+.age-modal-content{position:relative;background:linear-gradient(135deg,rgba(24,9,38,0.96),rgba(36,2,49,0.96));border:1px solid rgba(168,85,247,0.25);border-radius:24px;max-width:520px;width:90%;padding:38px 32px;box-shadow:0 30px 80px rgba(0,0,0,0.65);z-index:1}
+.age-modal-content::before{content:'';position:absolute;inset:-30%;background:radial-gradient(circle,#a855f7,transparent 60%);opacity:0.2;z-index:-1}
+.age-modal-close{position:absolute;top:15px;right:20px;background:none;border:none;font-size:2rem;color:#b9a9f5;cursor:pointer;transition:color 0.2s;line-height:1}
+.age-modal-close:hover{color:#fff}
+.age-modal-icon{width:68px;height:68px;border-radius:16px;background:linear-gradient(135deg,#ec4899,#a855f7);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;box-shadow:0 15px 30px rgba(168,85,247,0.4);margin-bottom:20px}
+.age-modal-title{font-size:1.6rem;font-weight:700;color:#fff;margin-bottom:12px}
+.age-modal-text{font-size:1rem;color:#c0b6f5;margin-bottom:20px;line-height:1.6}
+.age-modal-benefits{margin-bottom:22px}
+.age-benefit{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:12px;margin-bottom:10px;transition:all 0.3s}
+.age-benefit:hover{background:rgba(168,85,247,0.15);border-color:rgba(168,85,247,0.4)}
+.age-benefit-icon{font-size:1.3rem;color:#d9bfff;font-weight:700}
+.age-benefit span{color:#f3e0ff;font-size:0.95rem;font-weight:500}
+.age-modal-checkbox{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:12px;cursor:pointer;margin-bottom:20px;transition:all 0.3s}
+.age-modal-checkbox:hover{background:rgba(168,85,247,0.15);border-color:rgba(168,85,247,0.4)}
+.age-modal-checkbox input{margin-top:2px;width:18px;height:18px;accent-color:#a855f7;cursor:pointer}
+.age-modal-checkbox span{color:#f3e0ff;font-size:0.9rem;line-height:1.5}
+.age-modal-actions{display:flex;flex-direction:column;gap:12px}
+.age-modal-actions .btn{width:100%;font-size:1rem;padding:16px 30px}
+.age-confirm-btn:disabled{opacity:0.5;cursor:not-allowed}
+.age-cancel-btn{background:rgba(255,255,255,0.1)!important;box-shadow:none!important}
+.age-cancel-btn:hover{background:rgba(255,255,255,0.15)!important}
+.contacts-locked .btn-wa,.contacts-locked .btn-tg,.contacts-locked .phone-link{pointer-events:none;opacity:0.5;filter:blur(3px);cursor:not-allowed}
+.contacts-locked .sticky-messengers{display:none}
+@media(max-width:768px){.age-widget-btn{padding:14px 26px;font-size:0.95rem}.age-modal-content{padding:28px 24px}.age-modal-title{font-size:1.4rem}}
 .slider{position:relative;overflow:hidden;max-width:900px;margin:0 auto}
 .slider-wrapper{display:flex;transition:transform 0.5s ease}
 .slider-slide{min-width:100%;box-sizing:border-box}
@@ -589,9 +633,48 @@ footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid 
         </div>
         </div>
 
+<div class="age-widget" id="ageWidget">
+<button class="age-widget-btn" onclick="openAgeModal()">
+<span class="age-widget-icon">18+</span>
+<span class="age-widget-text">Подтвердите возраст</span>
+</button>
+</div>
+<div class="age-modal" id="ageModal">
+<div class="age-modal-overlay" onclick="closeAgeModal()"></div>
+<div class="age-modal-content">
+<button class="age-modal-close" onclick="closeAgeModal()">&times;</button>
+<div class="age-modal-icon">18+</div>
+<h2 class="age-modal-title">Подтверждение возраста</h2>
+<p class="age-modal-text">Материалы сайта содержат информацию для лиц старше 18 лет. Подтвердите возраст для доступа к контактам и диагностике.</p>
+<div class="age-modal-benefits">
+<div class="age-benefit">
+<span class="age-benefit-icon">?</span>
+<span>Мгновенный доступ к WhatsApp и Telegram</span>
+</div>
+<div class="age-benefit">
+<span class="age-benefit-icon">?</span>
+<span>Доступ к расписанию и отчётам</span>
+</div>
+<div class="age-benefit">
+<span class="age-benefit-icon">?</span>
+<span>Полная конфиденциальность переписки</span>
+</div>
+</div>
+<label class="age-modal-checkbox">
+<input type="checkbox" id="ageConfirmCheckbox">
+<span>Мне исполнилось 18 лет, я согласен с условиями</span>
+</label>
+<div class="age-modal-actions">
+<button class="btn age-confirm-btn" id="ageConfirmBtn" onclick="confirmAgeAccess()" disabled style="background:linear-gradient(135deg,#ec4899,#a855f7)">Подтвердить и открыть контакты</button>
+<button class="btn age-cancel-btn" onclick="closeAgeModal()">Отмена</button>
+</div>
+</div>
+</div>
+
 <script>
 (()=>{
-document.querySelectorAll('a[href^="#"]').forEach(a=>{
+const hashLinks=Array.from(document.querySelectorAll('a[href^="#"]')).filter(link=>!link.matches('[data-wa],[data-telegram]'));
+hashLinks.forEach(a=>{
     a.addEventListener('click',function(e){
         e.preventDefault();
         const t=this.getAttribute('href');
@@ -738,6 +821,16 @@ function closePrivacyModal(){document.getElementById('privacyModal').style.displ
 window.onclick=function(e){const modal=document.getElementById('privacyModal');if(e.target==modal){closePrivacyModal()}}
 </script>
 
+<script>
+function openAgeModal(){const modal=document.getElementById('ageModal');if(modal){modal.classList.add('active');document.body.style.overflow='hidden'}}
+function closeAgeModal(){const modal=document.getElementById('ageModal');if(modal){modal.classList.remove('active');document.body.style.overflow='auto'}}
+function confirmAgeAccess(){const checkbox=document.getElementById('ageConfirmCheckbox');if(!checkbox||!checkbox.checked)return;localStorage.setItem('ageConfirmed','true');document.body.classList.remove('contacts-locked');const widget=document.getElementById('ageWidget');if(widget){widget.style.display='none'}closeAgeModal();const sticky=document.getElementById('stickyMessengers');if(sticky){sticky.style.display='flex'}}
+const ageCheckbox=document.getElementById('ageConfirmCheckbox');
+const ageConfirmBtn=document.getElementById('ageConfirmBtn');
+if(ageCheckbox&&ageConfirmBtn){ageCheckbox.addEventListener('change',function(){ageConfirmBtn.disabled=!this.checked})}
+window.addEventListener('load',function(){const confirmed=localStorage.getItem('ageConfirmed')==='true';const widget=document.getElementById('ageWidget');const sticky=document.getElementById('stickyMessengers');if(confirmed){document.body.classList.remove('contacts-locked');if(widget){widget.style.display='none'}if(sticky){sticky.style.display='flex'}}else{document.body.classList.add('contacts-locked');if(widget){widget.style.display='block'}if(sticky){sticky.style.display='none'}}});
+</script>
+
 <script type="text/javascript">
 if(SITE_SETTINGS.yandexMetrikaId){
 (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
@@ -753,8 +846,3 @@ ym(SITE_SETTINGS.yandexMetrikaId,"init",{clickmap:true,trackLinks:true,accurateT
 
 </body>
 </html>
-
-
-
-
-
