@@ -185,6 +185,27 @@ footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid 
 .contacts-locked .sticky-messengers{display:none}
 @media(max-width:768px){.age-widget-btn{padding:10px 18px;font-size:0.9rem}.age-modal-content{padding:22px 18px}.age-modal-title{font-size:1.3rem}}
 @media(max-width:480px){.age-modal-content{padding:18px 16px}.age-modal-title{font-size:1.2rem}.age-modal-text{font-size:0.85rem}}
+.contact-confirm-modal{position:fixed;inset:0;background:rgba(7,3,15,0.95);backdrop-filter:blur(10px);z-index:10001;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s ease}
+.contact-confirm-modal.active{opacity:1;pointer-events:auto}
+.contact-confirm-modal.active .contact-confirm-content{animation:modalSlideIn 0.4s ease-out}
+.contact-confirm-overlay{position:absolute;inset:0;background:transparent;cursor:pointer}
+.contact-confirm-content{position:relative;background:linear-gradient(135deg,rgba(24,9,38,0.96),rgba(36,2,49,0.96));border:1px solid rgba(168,85,247,0.25);border-radius:18px;max-width:420px;width:92%;padding:26px 22px;box-shadow:0 20px 60px rgba(0,0,0,0.65);z-index:1;max-height:90vh;overflow-y:auto}
+.contact-confirm-close{position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.6rem;color:#b9a9f5;cursor:pointer;transition:color 0.2s;line-height:1}
+.contact-confirm-close:hover{color:#fff}
+.contact-confirm-icon{width:70px;height:70px;border-radius:14px;background:linear-gradient(135deg,#25d366,#128c7e);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 16px;box-shadow:0 12px 24px rgba(37,211,102,0.35)}
+.contact-confirm-icon.telegram-icon{background:linear-gradient(135deg,#2aabee,#0f6eb5);box-shadow:0 12px 24px rgba(42,171,238,0.35)}
+.contact-confirm-title{font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:10px;text-align:center}
+.contact-confirm-text{font-size:0.95rem;color:#c0b6f5;margin-bottom:20px;line-height:1.5;text-align:center}
+.contact-confirm-actions{display:flex;flex-direction:column;gap:12px}
+.contact-confirm-btn{width:100%;font-size:1rem;padding:16px 30px;position:relative;overflow:hidden}
+.contact-confirm-btn:disabled{opacity:0.6;cursor:not-allowed}
+.contact-confirm-btn:disabled .btn-text{opacity:0.5}
+.contact-confirm-btn .countdown-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:#fff;z-index:1}
+.contact-confirm-btn .btn-text{position:relative;z-index:0}
+.contact-cancel-btn{background:rgba(255,255,255,0.1)!important;box-shadow:none!important}
+.contact-cancel-btn:hover{background:rgba(255,255,255,0.15)!important}
+@media(max-width:768px){.contact-confirm-content{padding:22px 18px}.contact-confirm-title{font-size:1.3rem}}
+@media(max-width:480px){.contact-confirm-content{padding:18px 16px}.contact-confirm-title{font-size:1.2rem}.contact-confirm-text{font-size:0.85rem}}
 .slider{position:relative;overflow:hidden;max-width:900px;margin:0 auto}
 .slider-wrapper{display:flex;transition:transform 0.5s ease}
 .slider-slide{min-width:100%;box-sizing:border-box}
@@ -514,6 +535,23 @@ footer{background:#0a0814;padding:40px 0;text-align:center;border-top:1px solid 
 </div>
 </div>
 
+<div class="contact-confirm-modal" id="contactConfirmModal">
+<div class="contact-confirm-overlay" onclick="closeContactConfirmModal()"></div>
+<div class="contact-confirm-content">
+<button class="contact-confirm-close" onclick="closeContactConfirmModal()">&times;</button>
+<div class="contact-confirm-icon" id="contactConfirmIcon">💬</div>
+<h2 class="contact-confirm-title" id="contactConfirmTitle">Связаться в WhatsApp?</h2>
+<p class="contact-confirm-text" id="contactConfirmText">Вы будете перенаправлены в WhatsApp для консультации. Я отвечу вам в течение 3 минут.</p>
+<div class="contact-confirm-actions">
+<button class="btn contact-confirm-btn" id="contactConfirmBtn" onclick="confirmContactAction()" disabled>
+<span class="countdown-overlay" id="countdownOverlay">3</span>
+<span class="btn-text" id="contactConfirmBtnText">Перейти в WhatsApp</span>
+</button>
+<button class="btn contact-cancel-btn" onclick="closeContactConfirmModal()">Отмена</button>
+</div>
+</div>
+</div>
+
 <script>
 (()=>{
 const hashLinks=Array.from(document.querySelectorAll('a[href^="#"]')).filter(link=>!link.matches('[data-wa],[data-telegram]'));
@@ -529,17 +567,121 @@ hashLinks.forEach(a=>{
 const TARGET_WA_URL=window.__TARGET_WA_URL__;
 const TARGET_TG_URL=window.__TELEGRAM_URL__;
 const TG_ENABLED=window.__TELEGRAM_ENABLED__;
+
+let pendingContactUrl='';
+let pendingContactType='';
+let countdownTimer=null;
+
+function openContactConfirmModal(url,type){
+    pendingContactUrl=url;
+    pendingContactType=type;
+    const modal=document.getElementById('contactConfirmModal');
+    const icon=document.getElementById('contactConfirmIcon');
+    const title=document.getElementById('contactConfirmTitle');
+    const text=document.getElementById('contactConfirmText');
+    const btnText=document.getElementById('contactConfirmBtnText');
+    const confirmBtn=document.getElementById('contactConfirmBtn');
+    const countdownOverlay=document.getElementById('countdownOverlay');
+
+    if(type==='whatsapp'){
+        icon.textContent='💬';
+        icon.classList.remove('telegram-icon');
+        title.textContent='Связаться в WhatsApp?';
+        text.textContent='Вы будете перенаправлены в WhatsApp для консультации. Я отвечу вам в течение 3 минут.';
+        btnText.textContent='Перейти в WhatsApp';
+        confirmBtn.className='btn contact-confirm-btn btn-wa';
+    }else if(type==='telegram'){
+        icon.textContent='✈';
+        icon.classList.add('telegram-icon');
+        title.textContent='Связаться в Telegram?';
+        text.textContent='Вы будете перенаправлены в Telegram для консультации. Я отвечу вам в течение 3 минут.';
+        btnText.textContent='Перейти в Telegram';
+        confirmBtn.className='btn contact-confirm-btn btn-tg';
+    }
+
+    modal.classList.add('active');
+    document.body.style.overflow='hidden';
+    confirmBtn.disabled=true;
+    countdownOverlay.style.display='flex';
+
+    let countdown=3;
+    countdownOverlay.textContent=countdown;
+
+    if(countdownTimer){clearInterval(countdownTimer)}
+
+    countdownTimer=setInterval(()=>{
+        countdown--;
+        if(countdown>0){
+            countdownOverlay.textContent=countdown;
+        }else{
+            clearInterval(countdownTimer);
+            countdownTimer=null;
+            countdownOverlay.style.display='none';
+            confirmBtn.disabled=false;
+        }
+    },1000);
+}
+
+function closeContactConfirmModal(){
+    const modal=document.getElementById('contactConfirmModal');
+    modal.classList.remove('active');
+    document.body.style.overflow='auto';
+    pendingContactUrl='';
+    pendingContactType='';
+    if(countdownTimer){
+        clearInterval(countdownTimer);
+        countdownTimer=null;
+    }
+}
+
+function confirmContactAction(){
+    if(!pendingContactUrl)return;
+
+    if(typeof ym==='function'&&SITE_SETTINGS.yandexMetrikaId){
+        try{
+            const goalName=pendingContactType==='whatsapp'?'wa_click':'tg_click';
+            ym(SITE_SETTINGS.yandexMetrikaId,'reachGoal',goalName);
+        }catch(err){}
+    }
+
+    window.open(pendingContactUrl,'_blank','noopener,noreferrer');
+    closeContactConfirmModal();
+}
+
+window.openContactConfirmModal=openContactConfirmModal;
+window.closeContactConfirmModal=closeContactConfirmModal;
+window.confirmContactAction=confirmContactAction;
+
 const waButtons=Array.from(document.querySelectorAll('[data-wa],.btn[href*="whatsapp"],.btn[href*="wa.me"]'));
-const handleWaClick=()=>{if(typeof ym==='function'&&SITE_SETTINGS.yandexMetrikaId){try{ym(SITE_SETTINGS.yandexMetrikaId,'reachGoal','wa_click')}catch(err){}}};
-waButtons.forEach(btn=>{if(btn.tagName==='A'){btn.href=TARGET_WA_URL;btn.target='_blank';btn.rel='noopener noreferrer'}btn.addEventListener('click',handleWaClick)});
+waButtons.forEach(btn=>{
+    if(btn.tagName==='A'){
+        btn.href='#';
+    }
+    btn.addEventListener('click',function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        openContactConfirmModal(TARGET_WA_URL,'whatsapp');
+        return false;
+    });
+});
+
 const tgButtons=Array.from(document.querySelectorAll('[data-telegram],.btn[href*="t.me"],.btn[href*="telegram.me"]'));
-const handleTgClick=()=>{if(typeof ym==='function'&&SITE_SETTINGS.yandexMetrikaId){try{ym(SITE_SETTINGS.yandexMetrikaId,'reachGoal','tg_click')}catch(err){}}};
 if(TARGET_TG_URL){
-tgButtons.forEach(btn=>{if(btn.tagName==='A'){btn.href=TARGET_TG_URL;btn.target='_blank';btn.rel='noopener noreferrer'}btn.addEventListener('click',handleTgClick)});
+    tgButtons.forEach(btn=>{
+        if(btn.tagName==='A'){
+            btn.href='#';
+        }
+        btn.addEventListener('click',function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            openContactConfirmModal(TARGET_TG_URL,'telegram');
+            return false;
+        });
+    });
 }else{
-tgButtons.forEach(btn=>{btn.style.display='none'});
-const sticky=document.getElementById('stickyMessengers');
-if(sticky){const visible=Array.from(sticky.children).some(child=>child.style.display!=='none');if(!visible){sticky.style.display='none'}}
+    tgButtons.forEach(btn=>{btn.style.display='none'});
+    const sticky=document.getElementById('stickyMessengers');
+    if(sticky){const visible=Array.from(sticky.children).some(child=>child.style.display!=='none');if(!visible){sticky.style.display='none'}}
 }
 const animateOnScroll=()=>{
     document.querySelectorAll('.card,.testimonial,.hero-img').forEach(el=>{
